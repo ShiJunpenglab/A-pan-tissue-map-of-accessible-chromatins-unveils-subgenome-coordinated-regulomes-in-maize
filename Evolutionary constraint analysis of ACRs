@@ -1,0 +1,42 @@
+## cactus
+#!/bin/bash
+#SBATCH -p v6_384
+#SBATCH -N 1
+#SBATCH -c 96
+#SBATCH -o ./Species.log
+source /path/software/cactus-bin-v2.6.0/lyt-cactus-v2.6.0/bin/activate
+PATH=$PATH:/path/liuyt/software/cactus-bin-v2.6.0/bin
+
+cat ./Species.txt |while read id
+do
+name=$id
+mkdir /path/evolution/cactus_temp_${name}
+export TMPDIR=/path/evolution/cactus_temp_${name}
+
+cactus ./js_grass_${name} ./B73.${name}.txt ./B73.${name}.hal \
+ --consMemory 380G \
+ --binariesMode local \
+ --stats \
+ --workDir /path/evolution/cactus_temp_${name}
+
+## haltomaf
+toil clean js_grass_${name}
+
+cactus-hal2maf ./js_grass_${name} B73.${name}.hal B73.${name}.maf.gz \
+ --refGenome B73V4 \
+ --chunkSize 1000000 \
+ --binariesMode local \
+ --dupeMode ancestral
+
+## haltochain
+toil clean js_grass_${name}
+
+cactus-hal2chains ./js_grass_${name} ./B73.${name}.hal ${name}_chain/ --refGenome ${name}
+mv ${name}_chain/B73V4.chain.gz ${name}_chain/${name}.chain.gz
+cp ${name}_chain/${name}.chain.gz ./grass_chain
+
+rm -rf /path/evolution/cactus_temp_${name}
+
+done
+
+

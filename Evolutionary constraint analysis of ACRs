@@ -39,4 +39,13 @@ rm -rf /path/evolution/cactus_temp_${name}
 
 done
 
+## chain
+ls *chain |while read id 
+do
+
+name=$(echo $id |cut -d "." -f 1)
+
+liftOver -minMatch=0.9 B73_narrowCRE.bed $name.chain narrowCRE.${name}.liftOver90.txt narrowCRE.${name}.unMapped90.txt
+
+done
 
